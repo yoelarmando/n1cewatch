@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"os"
 	"path/filepath"
 	"time"
 
@@ -48,6 +49,7 @@ func (w *Watcher) Start() <-chan event.Event {
 		defer close(ch)
 		defer w.watcher.Close()
 		var last time.Time
+		hostname, _ := os.Hostname()
 		for {
 			select {
 			case ev, ok := <-w.watcher.Events:
@@ -60,6 +62,7 @@ func (w *Watcher) Start() <-chan event.Event {
 				last = time.Now()
 				ch <- event.Event{
 					Timestamp: time.Now().UTC(),
+					Host:      hostname,
 					Type:      event.TypeFSNotify,
 					EventID:   11,
 					TargetFilename: ev.Name,

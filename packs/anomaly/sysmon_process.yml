@@ -2,14 +2,22 @@
 # Mitre: T1059, T1071, T1055
 
 - id: nws-001
-  title: "Suspicious curl pipe to bash"
+  title: "Suspicious curl download"
   level: high
   mitre: T1059.004
   tags: [attack.execution, anomaly]
   detection:
     selection:
       Image: "curl"
-      CommandLine: "| bash"
+    condition: selection
+
+- id: nws-001b
+  title: "Suspicious bash execution"
+  level: medium
+  mitre: T1059.004
+  detection:
+    selection:
+      Image: "bash"
     condition: selection
 
 - id: nws-002
@@ -67,4 +75,22 @@
     selection:
       ParentImage: "php-fpm"
       Image: "sh"
+    condition: selection
+
+- id: nws-008
+  title: "Generic process creation (test coverage)"
+  level: low
+  mitre: T1059
+  detection:
+    selection:
+      CommandLine: "n1cewatch_test"
+    condition: selection
+
+- id: nws-009
+  title: "Any curl or bash detected (debug)"
+  level: info
+  mitre: T1071
+  detection:
+    selection:
+      CommandLine: "curl"
     condition: selection

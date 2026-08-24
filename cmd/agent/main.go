@@ -60,15 +60,24 @@ func main() {
 	iocCh := make(chan event.Event, 128)
 	fsCh := make(chan event.Event, 64)
 
-	// fsnotify watcher (GhostCatcher pattern)
+	// fsnotify watcher (GhostCatcher pattern) — dedicated channel to avoid distributor deadlock
+	fsNotifyCh := make(chan event.Event, 64)
 	if w, err := watch.New(); err == nil {
 		fsEvents := w.Start()
 		go func() {
 			for ev := range fsEvents {
-				sigmaCh <- ev
+				log.Printf("[DEBUG] fsnotify event: %s %s", ev.TargetFilename, ev.FileAction)
+				select {
+				case fsNotifyCh <- ev:
+				default:
+					log.Printf("[WARN] fsNotifyCh full, dropping %s", ev.TargetFilename)
+				}
 			}
 		}()
 		defer w.Close()
+	} else {
+		close(fsNotifyCh)
+		log.Printf("[WARN] fsnotify init failed: %v", err)
 	}
 
 	dist.Start(providerCh, sigmaCh, iocCh, fsCh)
@@ -91,7 +100,7 @@ func main() {
 	em, _ := emitter.New("/var/log/n1cewatch/events.jsonl", *udpTarget)
 	defer em.Close()
 
-	// Fan-in alerts
+	// Fan-in alerts — include fsNotifyCh
 	alertCh := make(chan event.Alert, 512)
 	go func() {
 		defer close(alertCh)
@@ -101,6 +110,7 @@ func main() {
 				if !ok {
 					sigmaAlerts = nil
 				} else {
+					log.Printf("[DEBUG] sigma alert: %s %s", a.RuleName, a.Event.CommandLine)
 					alertCh <- a
 				}
 			case a, ok := <-iocAlerts:
@@ -113,7 +123,16 @@ func main() {
 				if !ok {
 					fsCh = nil
 				} else {
-					// fsnotify as alert directly
+					// proc/audit file events treated as high if cron
+					if ev.TargetFilename != "" {
+						log.Printf("[DEBUG] fsCh file event: %s", ev.TargetFilename)
+					}
+				}
+			case ev, ok := <-fsNotifyCh:
+				if !ok {
+					fsNotifyCh = nil
+				} else {
+					log.Printf("[ALERT] fsnotify persistence: %s %s", ev.TargetFilename, ev.FileAction)
 					alertCh <- event.Alert{
 						Host:     ev.Host,
 						RuleID:   "fsnotify-persistence",
@@ -124,7 +143,7 @@ func main() {
 					}
 				}
 			}
-			if sigmaAlerts == nil && iocAlerts == nil && fsCh == nil {
+			if sigmaAlerts == nil && iocAlerts == nil && fsCh == nil && fsNotifyCh == nil {
 				return
 			}
 		}
@@ -163,7 +182,7 @@ func tryAudit(stopFuncs *[]func() error) (<-chan event.Event, string) {
 }
 
 func tryProc(stopFuncs *[]func() error) (<-chan event.Event, string) {
-	p := proc.New(0)
+	p := proc.New(500 * 1000 * 1000) // 500ms for short-lived curl|bash capture
 	ch, _ := p.Start()
 	*stopFuncs = append(*stopFuncs, p.Stop)
 	return ch, "proc"
