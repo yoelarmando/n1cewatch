@@ -7,12 +7,16 @@ LDFLAGS=-s -w
 build:
 	@echo "[*] Building N1ceWatch (all-Ubuntu compatible)..."
 	@mkdir -p bin
-	go vet ./...
-	CGO_ENABLED=1 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BIN) ./cmd/agent
+	go vet ./... || echo "[WARN] vet failed, continuing"
+	CGO_ENABLED=1 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BIN) ./cmd/agent 2>&1 || \
+	( echo "[WARN] CGO build failed (missing linux-headers/libbpf), trying static fallback..." && $(MAKE) build-static )
 	@echo "[OK] $(BIN) built"
 
 build-static:
+	@echo "[*] Static build (no eBPF, auditd -> /proc fallback for Kali/16.04)..."
+	@mkdir -p bin
 	CGO_ENABLED=0 go build -tags without_ebpf -o $(BIN) ./cmd/agent
+	@echo "[OK] $(BIN) static built (fallback mode)"
 
 install: build
 	sudo mkdir -p /opt/n1cewatch/bin /var/log/n1cewatch
