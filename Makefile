@@ -4,7 +4,11 @@ BIN=bin/n1cewatch
 GOFLAGS=-trimpath
 LDFLAGS=-s -w
 
-build:
+tidy:
+	go mod tidy
+	go mod download
+
+build: tidy
 	@echo "[*] Building N1ceWatch (all-Ubuntu compatible)..."
 	@mkdir -p bin
 	go vet ./... || echo "[WARN] vet failed, continuing"
@@ -12,7 +16,7 @@ build:
 	( echo "[WARN] CGO build failed (missing linux-headers/libbpf), trying static fallback..." && $(MAKE) build-static )
 	@echo "[OK] $(BIN) built"
 
-build-static:
+build-static: tidy
 	@echo "[*] Static build (no eBPF, auditd -> /proc fallback for Kali/16.04)..."
 	@mkdir -p bin
 	CGO_ENABLED=0 go build -tags without_ebpf -o $(BIN) ./cmd/agent

@@ -1,3 +1,5 @@
+//go:build !without_ebpf
+
 package store
 
 import (
