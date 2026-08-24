@@ -1,0 +1,70 @@
+# N1ceWatch anomaly pack — generic blue-team (Aurora 119 rules subset)
+# Mitre: T1059, T1071, T1055
+
+- id: nws-001
+  title: "Suspicious curl pipe to bash"
+  level: high
+  mitre: T1059.004
+  tags: [attack.execution, anomaly]
+  detection:
+    selection:
+      Image: "curl"
+      CommandLine: "| bash"
+    condition: selection
+
+- id: nws-002
+  title: "Reverse shell via bash /dev/tcp"
+  level: critical
+  mitre: T1059.004
+  tags: [attack.execution]
+  detection:
+    selection:
+      CommandLine: "/dev/tcp"
+    condition: selection
+
+- id: nws-003
+  title: "Base64 decode and execute"
+  level: high
+  mitre: T1140
+  detection:
+    selection:
+      CommandLine: "base64 -d"
+    condition: selection
+
+- id: nws-004
+  title: "Memfd create anonymous execution"
+  level: high
+  mitre: T1620
+  detection:
+    selection:
+      CommandLine: "memfd_create"
+    condition: selection
+
+- id: nws-005
+  title: "Suspicious java child shell"
+  level: high
+  mitre: T1059
+  detection:
+    selection:
+      ParentImage: "java"
+      Image: "sh"
+    condition: selection
+
+- id: nws-006
+  title: "BPF program load anomaly"
+  level: medium
+  mitre: T1014
+  detection:
+    selection:
+      Image: "bpf"
+    condition: selection
+
+- id: nws-007
+  title: "Web shell child process (generic)"
+  level: high
+  mitre: T1505.003
+  detection:
+    selection:
+      ParentImage: "php-fpm"
+      Image: "sh"
+    condition: selection

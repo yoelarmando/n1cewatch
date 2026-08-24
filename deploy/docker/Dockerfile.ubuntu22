@@ -1,0 +1,7 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y clang llvm libbpf-dev linux-headers-generic sqlite3 ca-certificates curl
+WORKDIR /app
+COPY . .
+RUN make build
+EXPOSE 8081 3000
+CMD ["/app/bin/n1cewatch", "--json", "--store-path", "/tmp/n1cewatch.db", "--store-query-port", "8081", "--no-ebpf"]

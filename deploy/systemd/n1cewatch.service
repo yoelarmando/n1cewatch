@@ -1,0 +1,41 @@
+[Unit]
+Description=N1ceWatch Blue — Runtime Anomaly Monitor (All Ubuntu)
+After=network.target auditd.service
+Wants=auditd.service
+Documentation=https://github.com/n1cewatch/n1cewatch
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/n1cewatch/bin/n1cewatch --json --store-path /var/log/n1cewatch.db --store-query-port 8081 --rules /opt/n1cewatch/packs/anomaly
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Capabilities — all-Ubuntu compatible (CAP_BPF on 5.8+, fallback CAP_SYS_ADMIN)
+AmbientCapabilities=CAP_BPF CAP_PERFMON CAP_SYS_PTRACE CAP_DAC_READ_SEARCH CAP_SYSLOG
+CapabilityBoundingSet=CAP_BPF CAP_PERFMON CAP_SYS_PTRACE CAP_DAC_READ_SEARCH CAP_SYSLOG CAP_SYS_ADMIN
+
+# Tamper-resistance Option A: non-sudo cannot kill/stop/rm
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadWritePaths=/var/log/n1cewatch /var/log/n1cewatch.db /run/n1cewatch
+StateDirectory=n1cewatch
+LogsDirectory=n1cewatch
+RuntimeDirectory=n1cewatch
+PIDFile=/run/n1cewatch/n1cewatch.pid
+
+# Resource limits
+MemoryMax=500M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

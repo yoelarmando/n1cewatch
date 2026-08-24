@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agents": {
+    "golang-pro": {
+      "description": "Go eBPF provider/distributor/consumer — CO-RE, auditd, proc fallback, Sigma engine",
+      "skills": ["golang-pro", "architecture-designer", "code-reviewer"]
+    },
+    "frontend": {
+      "description": "Next.js dashboard + API gateway — real-time alerts, process tree, reports",
+      "skills": ["nextjs-developer", "frontend-design", "typescript-pro"]
+    },
+    "qa": {
+      "description": "Testing + verification — all-Ubuntu Docker matrix, tamper tests, e2e",
+      "skills": ["test-master", "debugging-wizard", "code-reviewer"]
+    },
+    "security": {
+      "description": "Blue-team hardening review — systemd, capabilities, tamper-resistance Option A",
+      "skills": ["code-reviewer", "architecture-designer", "the-fool"]
+    }
+  },
+  "skills": [
+    "golang-pro",
+    "nextjs-developer",
+    "typescript-pro",
+    "architecture-designer",
+    "frontend-design",
+    "code-reviewer",
+    "test-master",
+    "debugging-wizard",
+    "the-fool"
+  ],
+  "orchestration": {
+    "phases": [
+      { "name": "provider", "agent": "golang-pro", "paths": ["lib/provider/**", "bpf/**", "cmd/agent/btf_probe.go"] },
+      { "name": "distributor-consumer", "agent": "golang-pro", "paths": ["lib/distributor/**", "lib/consumer/**", "lib/enrich/**", "packs/**"] },
+      { "name": "store-emitter", "agent": "golang-pro", "paths": ["lib/store/**", "lib/emitter/**", "lib/report/**"] },
+      { "name": "hardening", "agent": "security", "paths": ["deploy/systemd/**", "deploy/install.sh"] },
+      { "name": "frontend", "agent": "frontend", "paths": ["frontend/**"] },
+      { "name": "verify", "agent": "qa", "paths": ["**/*test*.go", "deploy/docker/**", "scripts/**"] }
+    ],
+    "allUbuntuMatrix": ["16.04", "18.04", "20.04", "22.04", "24.04"]
+  }
+}

@@ -1,0 +1,3 @@
+# IOC filenames — example rootkit
+ Diamorphine.ko
+ libprocesshider.so

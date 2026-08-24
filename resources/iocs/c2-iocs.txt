@@ -1,0 +1,5 @@
+# N1ceWatch IOC — curated C2 demo (replace with MISP feed)
+# Format: one IP per line
+185.220.101.1
+192.0.2.100
+# add real TI via: curl https://feeds.example/c2.txt > c2-iocs.txt

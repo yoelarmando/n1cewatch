@@ -1,0 +1,35 @@
+- id: nws-fs-001
+  title: "Cron persistence file modified"
+  level: medium
+  mitre: T1053.003
+  detection:
+    selection:
+      TargetFilename: "/etc/cron"
+    condition: selection
+
+- id: nws-fs-002
+  title: "LD_PRELOAD hijack"
+  level: critical
+  mitre: T1574.006
+  detection:
+    selection:
+      TargetFilename: "ld.so.preload"
+    condition: selection
+
+- id: nws-fs-003
+  title: "Systemd unit persistence"
+  level: high
+  mitre: T1543.002
+  detection:
+    selection:
+      TargetFilename: "/etc/systemd/system"
+    condition: selection
+
+- id: nws-fs-004
+  title: "Sudoers modification"
+  level: high
+  mitre: T1548.003
+  detection:
+    selection:
+      TargetFilename: "sudoers"
+    condition: selection

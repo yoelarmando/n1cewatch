@@ -1,0 +1,6 @@
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y sqlite3 ca-certificates curl auditd
+WORKDIR /app
+COPY . .
+# No eBPF — uses auditd/proc fallback
+CMD ["/app/bin/n1cewatch", "--json", "--no-ebpf", "--audit-log", "/var/log/audit/audit.log"]
