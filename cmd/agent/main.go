@@ -44,18 +44,18 @@ func main() {
 		// Try eBPF — handle import on Windows dev gracefully
 		if err := tryEBPF(&providerCh, &providerName, &stopFuncs); err != nil {
 			log.Printf("[WARN] eBPF failed (%v), falling back to auditd", err)
-			providerCh, providerName = tryAudit(stopFuncs)
+			providerCh, providerName = tryAudit(&stopFuncs)
 		}
 	} else {
-		providerCh, providerName = tryAudit(stopFuncs)
+		providerCh, providerName = tryAudit(&stopFuncs)
 	}
 	if providerCh == nil {
-		providerCh, providerName = tryProc(stopFuncs)
+		providerCh, providerName = tryProc(&stopFuncs)
 	}
 	log.Printf("[INFO] Provider: %s (rules=%s store=%s:%d)", providerName, *rulesPath, *storePath, *storeQueryPort)
 
 	// Distributor
-	dist := distributor.New(*throttleRate, float64(*throttleBurst))
+	dist := distributor.New(*throttleRate, *throttleBurst)
 	sigmaCh := make(chan event.Event, 512)
 	iocCh := make(chan event.Event, 128)
 	fsCh := make(chan event.Event, 64)
